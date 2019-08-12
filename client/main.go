@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	api "github.com/axiomzen/grpc-testing/api"
+	api "github.com/sadief/grpc-log-middleware-test/api"
 	"google.golang.org/grpc"
 )
 

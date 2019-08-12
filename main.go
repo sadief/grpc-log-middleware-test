@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 
-	api "github.com/axiomzen/grpc-testing/api"
-	zapper "github.com/axiomzen/grpc-testing/zapper"
+	api "github.com/sadief/grpc-log-middleware-test/api"
+	zapper "github.com/sadief/grpc-log-middleware-test/zapper"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
@@ -27,7 +28,8 @@ const (
 )
 
 func (s *pingServer) Ping(ctx context.Context, in *api.PingRequest) (*api.PingResponse, error) {
-	log.Printf("Ping Received: %v", in.Message)
+	l := grpc_zap.Extract(ctx)
+	l.Debug(fmt.Sprintf("Ping Received: %v", in.Message))
 	return &api.PingResponse{Message: "pong"}, nil
 }
 
@@ -51,9 +53,9 @@ func main() {
 	}
 
 	s := grpc.NewServer(grpc_middleware.WithUnaryServerChain(
-		zapper.LoggingUnaryServerInterceptor(),
 		grpc_ctxtags.UnaryServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor)),
 		grpc_zap.UnaryServerInterceptor(zapLogger, opts...),
+		zapper.LoggingUnaryServerInterceptor(),
 	))
 
 	api.RegisterPingServiceServer(s, &pingServer{})
